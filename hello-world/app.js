@@ -28,6 +28,8 @@ exports.lambdaHandler = async (event, context) => {
         console.log(err);
         return err;
     }
+    
+    console.log("hello")
     console.log(event);
 
     return response
