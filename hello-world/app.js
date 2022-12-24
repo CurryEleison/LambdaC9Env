@@ -1,7 +1,7 @@
 // const axios = require('axios')
 // const url = 'http://checkip.amazonaws.com/';
 let response;
-
+var AWS = require('aws-sdk');
 /**
  *
  * Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
@@ -29,8 +29,34 @@ exports.lambdaHandler = async (event, context) => {
         return err;
     }
     
-    console.log("hello")
+    var s3ObjectKey = event.Records[0].s3.object.key;
+    var s3TimeStamp = event.Records[0].eventTime;
+    
+    console.log("hello ");
     console.log(event);
+    
+    // Set the region 
+    AWS.config.update({region: 'eu-north-1'});
+    
+    // Create the DynamoDB service object
+    var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
+    
+    var params = {
+      TableName: 'LambdaTestDeploy-HelloWorldFunctionTable-11X8M7X32EH36',
+      Item: {
+        'id' : {S: s3ObjectKey},
+        'timestamp' : {S: s3TimeStamp}
+      }
+    };
+    
+    // Call DynamoDB to add the item to the table
+    await ddb.putItem(params, function(err, data) {
+      if (err) {
+        console.log("Error", err);
+      } else {
+        console.log("Success", data);
+      }
+    }).promise();
 
     return response
 };
